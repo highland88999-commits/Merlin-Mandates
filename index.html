@@ -209,20 +209,20 @@
 </head>
 <body>
 
-<!-- Intro Epic Video Overlay -->
+<!-- Intro Epic Video Overlay – now loops -->
 <div id="intro-video-overlay">
-    <video id="intro-video" muted playsinline>
+    <video id="intro-video" playsinline loop>
         <source src="https://www.dropbox.com/scl/fi/tux4yrgc7577y60xhr4xs/Make_it_epic._H.mp4?rlkey=9rzhb0xtqx6tvp591nermwfj3&st=4l98ueb2&raw=1" type="video/mp4">
         Your browser does not support the video tag.
     </video>
     <div style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); color: #00f0ff; font-size: 1.5rem; text-shadow: 0 0 10px #00f0ff; pointer-events: none;">
-        CLICK TO START → CLICK AGAIN TO ENTER
+        CLICK ANYWHERE TO START → CLICK AGAIN TO ENTER NEON CORE
     </div>
 </div>
 
 <div id="stars"></div>
 
-<!-- Hidden YouTube Playlist (shuffle + random start) -->
+<!-- YouTube Playlist – attempting unmuted autoplay -->
 <iframe id="bg-music" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 <div class="container" id="game-container">
@@ -266,36 +266,50 @@ function createStars() {
 }
 createStars();
 
-// Video Intro Logic
+// Video + Music Logic
 const videoOverlay = document.getElementById('intro-video-overlay');
 const introVideo = document.getElementById('intro-video');
 const gameContainer = document.getElementById('game-container');
 
-let videoPlayed = false;
+let firstInteractionDone = false;
 
 videoOverlay.addEventListener('click', () => {
-    if (!videoPlayed) {
-        introVideo.play().catch(() => {});
-        videoPlayed = true;
+    if (!firstInteractionDone) {
+        // First click: start video (will loop)
+        introVideo.play().catch(() => {
+            // Some browsers may still mute → user may need to interact again
+        });
+        firstInteractionDone = true;
     } else {
+        // Second click: hide video, show game, start music
         videoOverlay.classList.add('hidden');
         gameContainer.classList.add('visible');
         startBackgroundMusic();
     }
 });
 
-// Background Music Playlist (shuffle + random start)
+// Background Music – trying to start unmuted
 function startBackgroundMusic() {
     const playlistId = 'PLkmghnJPShXQl0i53iD4BIX2IR3MOsBRw';
-    // Random start index (YouTube API needs JS player for true shuffle, but we fake it with random index)
-    const randomIndex = Math.floor(Math.random() * 50) + 1; // assume playlist has >50 tracks
+    const randomIndex = Math.floor(Math.random() * 50) + 1; // fake random start
 
-    const src = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&mute=1&loop=1&playlist=${playlistId}&index=${randomIndex}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+    const src = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&mute=0&loop=1&playlist=${playlistId}&index=${randomIndex}&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1`;
 
-    document.getElementById('bg-music').src = src;
+    const iframe = document.getElementById('bg-music');
+    iframe.src = src;
+
+    // Optional: attempt to unmute via postMessage after load (limited success)
+    iframe.addEventListener('load', () => {
+        try {
+            iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+        } catch (e) {}
+    });
 }
 
-// Game Logic (tones removed)
+// ────────────────────────────────────────────────
+// Game Logic (no sound on buttons)
+// ────────────────────────────────────────────────
+
 let currentLevel = 1;
 let sequence = [];
 let playerInputIndex = 0;
