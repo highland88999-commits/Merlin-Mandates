@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENITH ECHO // NEON CORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            background: #000;
+            color: #00f0ff;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Starfield */
+        #stars {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at bottom, #0b001f 0%, #000 100%);
+            z-index: -2;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            animation: twinkle 6s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0%,100% { opacity: 0.4; }
+            50%     { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            margin: 2rem auto;
+            background: rgba(3, 10, 30, 0.65);
+            border: 1px solid #00f0ff33;
+            border-radius: 1.5rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 60px #00f0ff44, inset 0 0 30px #ff00aa22;
+            padding: 2rem 1.5rem;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-shadow: 0 0 20px #ff00aa, 0 0 40px #00f0ff;
+            letter-spacing: 6px;
+            background: linear-gradient(90deg, #ff00aa, #00f0ff, #ff00aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        .game-button {
+            height: 160px;
+            width: 160px;
+            border-radius: 1.2rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: 3px solid;
+            box-shadow: 0 0 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .game-button.highlight::after,
+        .game-button:active::after {
+            opacity: 1;
+        }
+
+        #btn-0 { /* Red → Neon Magenta/Pink */
+            background: #ff0066;
+            border-color: #ff3399;
+            box-shadow: 0 0 30px #ff0066aa;
+        }
+        #btn-1 { /* Blue → Electric Cyan */
+            background: #00d4ff;
+            border-color: #00f0ff;
+            box-shadow: 0 0 30px #00d4ffaa;
+        }
+        #btn-2 { /* Green → Acid Neon Green */
+            background: #39ff14;
+            border-color: #66ff33;
+            box-shadow: 0 0 30px #39ff14aa;
+        }
+        #btn-3 { /* Yellow → Toxic Neon Yellow */
+            background: #ffe700;
+            border-color: #ffff00;
+            box-shadow: 0 0 30px #ffe700aa;
+        }
+
+        .game-button.highlight, .game-button:active {
+            transform: scale(1.08);
+            box-shadow: 0 0 60px 15px currentColor !important;
+            filter: brightness(1.4);
+        }
+
+        #message-box {
+            min-height: 5rem;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            text-shadow: 0 0 12px #00f0ff;
+            letter-spacing: 2px;
+        }
+
+        .glitch {
+            animation: glitch 1.2s infinite;
+        }
+
+        @keyframes glitch {
+            0%   { text-shadow: 2px 0 #ff00aa, -2px 0 #00f0ff; }
+            20%  { text-shadow: -2px 0 #ff00aa, 2px 0 #00f0ff; }
+            40%  { text-shadow: 2px 0 #00f0ff, -2px 0 #ff00aa; }
+            60%  { text-shadow: -4px 0 #ff00aa, 4px 0 #00f0ff; }
+            80%  { text-shadow: 4px 0 #00f0ff, -4px 0 #ff00aa; }
+            100% { text-shadow: 2px 0 #ff00aa, -2px 0 #00f0ff; }
+        }
+
+        /* Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 2px,
+                rgba(0,0,0,0.18) 2px,
+                rgba(0,0,0,0.18) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<div class="container">
+    <h1 class="text-4xl text-center mb-6 tracking-widest">ZENITH ECHO</h1>
+    <div id="level-display" class="text-center text-2xl mb-8 neon-text">LEVEL 1 / 10</div>
+
+    <div id="game-grid" class="grid grid-cols-2 gap-6 mx-auto w-[340px] mb-10">
+        <div id="btn-0" class="game-button" data-color="Magenta"></div>
+        <div id="btn-1" class="game-button" data-color="Cyan"></div>
+        <div id="btn-2" class="game-button" data-color="Acid"></div>
+        <div id="btn-3" class="game-button" data-color="Toxic"></div>
+    </div>
+
+    <div id="message-box" class="text-center font-mono mb-8 transition-colors duration-500">
+        INITIATE NEON CORE → PRESS START
+    </div>
+
+    <div class="flex justify-center">
+        <button id="start-button" class="bg-black/60 hover:bg-black/80 border-2 border-[#00f0ff] text-[#00f0ff] font-bold py-4 px-12 rounded-full transition-all duration-300 shadow-[0_0_25px_#00f0ff88] hover:shadow-[0_0_45px_#00f0ffff]" onclick="startGame()">
+            ACTIVATE
+        </button>
+    </div>
+</div>
+
+<script>
+// Starfield
+function createStars() {
+    const starsDiv = document.getElementById('stars');
+    for (let i = 0; i < 180; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 2.5 + 0.8;
+        star.style.width = star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 5 + 's';
+        starsDiv.appendChild(star);
+    }
+}
+createStars();
+
+// ─── Audio ────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// Classic Simon-inspired cyber-tuned frequencies (A major feel)
+const TONES = {
+    0: 330,   // E4   → Magenta (was red)
+    1: 261.6, // C4   → Cyan (was blue)
+    2: 392,   // G4   → Acid Green
+    3: 523.3  // C5   → Toxic Yellow
+};
+
+function playTone(index, duration = 220) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sawtooth';          // cyberpunk vibe (can try 'square' too)
+    osc.frequency.value = TONES[index];
+
+    gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration/1000);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration/1000);
+}
+
+// ─── Game Logic (rest mostly unchanged, just styling & sound added) ───
+const COLORS = ['Magenta', 'Cyan', 'Acid', 'Toxic'];
+
+const BASE_DELAY = 520;
+const BASE_SEQUENCE = 2;
+const BASE_INPUT_TIME = 1100;
+
+const DIFFICULTY = {
+    1:  { length: BASE_SEQUENCE,     input_time_per_step: BASE_INPUT_TIME },
+    2:  { length: BASE_SEQUENCE + 1, input_time_per_step: BASE_INPUT_TIME - 90 },
+    3:  { length: BASE_SEQUENCE + 2, input_time_per_step: BASE_INPUT_TIME - 180 },
+    4:  { length: BASE_SEQUENCE + 3, input_time_per_step: BASE_INPUT_TIME - 270 },
+    5:  { length: BASE_SEQUENCE + 4, input_time_per_step: BASE_INPUT_TIME - 360 },
+    6:  { length: BASE_SEQUENCE + 5, input_time_per_step: BASE_INPUT_TIME - 450 },
+    7:  { length: BASE_SEQUENCE + 6, input_time_per_step: BASE_INPUT_TIME - 540 },
+    8:  { length: BASE_SEQUENCE + 7, input_time_per_step: BASE_INPUT_TIME - 630 },
+    9:  { length: BASE_SEQUENCE + 8, input_time_per_step: 320 },
+    10: { length: 25,                input_time_per_step: 280 }
+};
+
+let currentLevel = 1;
+let sequence = [];
+let playerInputIndex = 0;
+let isPlayerTurn = false;
+let isDisplaying = false;
+let inputStartTime = 0;
+let timeoutId;
+
+const levelDisplay = document.getElementById('level-display');
+const messageBox = document.getElementById('message-box');
+const startButton = document.getElementById('start-button');
+const buttons = [
+    document.getElementById('btn-0'),
+    document.getElementById('btn-1'),
+    document.getElementById('btn-2'),
+    document.getElementById('btn-3')
+];
+
+function highlightButton(index) {
+    const btn = buttons[index];
+    btn.classList.add('highlight');
+    playTone(index);
+    if (navigator.vibrate) navigator.vibrate(60);
+    setTimeout(() => btn.classList.remove('highlight'), BASE_DELAY * 0.7);
+}
+
+function generateSequence(level) {
+    const len = DIFFICULTY[level].length;
+    sequence = Array.from({length: len}, () => Math.floor(Math.random() * 4));
+}
+
+function displaySequence() {
+    isDisplaying = true;
+    messageBox.textContent = `NEURAL SYNC → LEVEL ${currentLevel}`;
+    messageBox.classList.add('neon-text');
+
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i < sequence.length) {
+            highlightButton(sequence[i]);
+            i++;
+        } else {
+            clearInterval(interval);
+            isDisplaying = false;
+            playerTurn();
+        }
+    }, BASE_DELAY);
+}
+
+function playerTurn() {
+    isPlayerTurn = true;
+    playerInputIndex = 0;
+    inputStartTime = Date.now();
+
+    const timeLimit = sequence.length * DIFFICULTY[currentLevel].input_time_per_step;
+
+    messageBox.textContent = currentLevel < 10
+        ? `REPLICATE ${sequence.length} NEON PULSES`
+        : "ZENITH OVERLOAD → BREAK THE MATRIX";
+
+    timeoutId = setTimeout(() => {
+        if (isPlayerTurn) gameOver("LINK TIMEOUT");
+    }, timeLimit);
+}
+
+function handleInput(index) {
+    if (!isPlayerTurn || isDisplaying) return;
+
+    // Zenith break (level 10 easter-egg)
+    if (currentLevel === 10 && playerInputIndex === 0) {
+        const elapsed = Date.now() - inputStartTime;
+        const target = 100;
+        const tolerance = 6;
+
+        if (index !== sequence[0] && elapsed >= target - tolerance && elapsed <= target + tolerance) {
+            clearTimeout(timeoutId);
+            isPlayerTurn = false;
+            celebrateWin("ZENITH BREAK → 100ms PHANTOM TIMING ACHIEVED");
+            return;
+        }
+    }
+
+    highlightButton(index);
+
+    if (index === sequence[playerInputIndex]) {
+        playerInputIndex++;
+        if (playerInputIndex === sequence.length) {
+            isPlayerTurn = false;
+            clearTimeout(timeoutId);
+            messageBox.textContent = `CORE ${currentLevel} STABILIZED → NEXT LAYER`;
+            setTimeout(nextLevel, 1400);
+        }
+    } else {
+        gameOver(`CRC ERROR at pulse ${playerInputIndex + 1}`);
+    }
+}
+
+function startGame() {
+    startButton.disabled = true;
+    startButton.textContent = "LIVE";
+    currentLevel = 1;
+    levelDisplay.textContent = `LEVEL ${currentLevel} / 10`;
+    messageBox.textContent = "NEURAL INTERFACE ONLINE...";
+    setTimeout(playLevel, 1200);
+}
+
+function playLevel() {
+    playerInputIndex = 0;
+    clearTimeout(timeoutId);
+    levelDisplay.textContent = `LEVEL ${currentLevel} / 10`;
+    generateSequence(currentLevel);
+    displaySequence();
+}
+
+function nextLevel() {
+    currentLevel++;
+    if (currentLevel > 10) {
+        finalWin();
+    } else {
+        playLevel();
+    }
+}
+
+function gameOver(reason) {
+    clearTimeout(timeoutId);
+    isPlayerTurn = false;
+    isDisplaying = false;
+    messageBox.innerHTML = `<span class="text-[#ff0066] glitch font-extrabold">CORE BREACH</span><br>${reason}<br>DEPTH ${currentLevel}`;
+    startButton.disabled = false;
+    startButton.textContent = "REBOOT";
+    currentLevel = 1;
+}
+
+function celebrateWin(message) {
+    levelDisplay.textContent = "MATRIX SHATTERED";
+    messageBox.innerHTML = `<span class="text-[#ffe700] glitch font-extrabold">NEON ASCENSION</span><br>${message}`;
+    startButton.disabled = true;
+    startButton.textContent = "LEGEND";
+
+    buttons.forEach((btn, i) => {
+        setTimeout(() => {
+            btn.classList.add('highlight');
+            btn.style.transform = 'rotate(360deg) scale(1.15)';
+            setTimeout(() => {
+                btn.classList.remove('highlight');
+                btn.style.transform = '';
+            }, 680);
+        }, i * 140);
+    });
+}
+
+function finalWin() {
+    celebrateWin("YOU TRANSCENDED ALL LAYERS → TRUE ZENITH");
+}
+
+// Events
+window.onload = () => {
+    buttons.forEach((btn, idx) => {
+        btn.addEventListener('click', () => handleInput(idx));
+        btn.addEventListener('touchend', e => {
+            e.preventDefault();
+            handleInput(idx);
+        });
+    });
+
+    // Responsive grid
+    window.addEventListener('resize', () => {
+        const size = Math.min(window.innerWidth - 80, 340);
+        document.getElementById('game-grid').style.width = size + 'px';
+    });
+    window.dispatchEvent(new Event('resize'));
+};
+
+</script>
+</body>
+</html>
