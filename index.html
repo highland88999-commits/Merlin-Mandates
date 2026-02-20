@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=VT323&display=swap" rel="stylesheet">
     <style>
         :root {
-            --btn-size: clamp(120px, 38vw, 180px);     /* scales between ~120–180px */
+            --btn-size: clamp(120px, 38vw, 180px);
             --grid-gap:  clamp(1rem,  4vw,  2.5rem);
             --container-pad: clamp(1.25rem, 5vw, 2.5rem);
             --max-container: 480px;
@@ -22,14 +22,36 @@
             background: #000;
             color: #00f0ff;
             overflow: hidden;
-            min-height: 100dvh;           /* better mobile support */
+            min-height: 100dvh;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* Starfield */
+        #intro-video-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+
+        #intro-video-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         #stars {
             position: fixed;
             inset: 0;
@@ -61,10 +83,17 @@
             box-shadow: 0 0 60px #00f0ff44, inset 0 0 30px #ff00aa22;
             padding: var(--container-pad);
             margin: 1rem;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: scale(1);
         }
 
         h1 {
-            font-family: 'Orbitron', sans-serif;
             font-weight: 900;
             text-shadow: 0 0 20px #ff00aa, 0 0 40px #00f0ff;
             letter-spacing: clamp(4px, 1.8vw, 8px);
@@ -103,7 +132,7 @@
             box-shadow: 0 0 25px;
             position: relative;
             overflow: hidden;
-            touch-action: manipulation; /* better mobile feel */
+            touch-action: manipulation;
         }
 
         .game-button::after {
@@ -154,18 +183,11 @@
             100% { text-shadow: 2px 0 #ff00aa, -2px 0 #00f0ff; }
         }
 
-        /* Scanlines */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0px,
-                transparent 2px,
-                rgba(0,0,0,0.18) 2px,
-                rgba(0,0,0,0.18) 4px
-            );
+            background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px);
             pointer-events: none;
             z-index: 9999;
             opacity: 0.35;
@@ -175,13 +197,35 @@
             font-size: clamp(1.1rem, 4vw, 1.4rem);
             padding: clamp(0.9rem, 3.5vw, 1.3rem) clamp(2rem, 8vw, 3.5rem);
         }
+
+        #bg-music {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
+<!-- Intro Epic Video Overlay -->
+<div id="intro-video-overlay">
+    <video id="intro-video" muted playsinline>
+        <source src="https://www.dropbox.com/scl/fi/tux4yrgc7577y60xhr4xs/Make_it_epic._H.mp4?rlkey=9rzhb0xtqx6tvp591nermwfj3&st=4l98ueb2&raw=1" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); color: #00f0ff; font-size: 1.5rem; text-shadow: 0 0 10px #00f0ff; pointer-events: none;">
+        CLICK TO START → CLICK AGAIN TO ENTER
+    </div>
+</div>
+
 <div id="stars"></div>
 
-<div class="container">
+<!-- Hidden YouTube Playlist (shuffle + random start) -->
+<iframe id="bg-music" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+<div class="container" id="game-container">
     <h1 class="tracking-widest">ZENITH ECHO</h1>
     <div id="level-display" class="text-center mb-6 neon-text">LEVEL 1 / 10</div>
 
@@ -193,7 +237,7 @@
     </div>
 
     <div id="message-box" class="transition-colors duration-500">
-        INITIATE NEON CORE → PRESS START
+        INITIATE NEON CORE → PRESS ACTIVATE
     </div>
 
     <div class="flex justify-center">
@@ -206,7 +250,7 @@
 </div>
 
 <script>
-// Starfield (unchanged)
+// Starfield
 function createStars() {
     const starsDiv = document.getElementById('stars');
     for (let i = 0; i < 180; i++) {
@@ -222,20 +266,208 @@ function createStars() {
 }
 createStars();
 
-// Audio, game logic, etc. remain unchanged from your previous version
-// ────────────────────────────────────────────────────────────────
-// (paste your full <script> content here – tones, handleInput, startGame, etc.)
-// For brevity I'm only showing the structural/responsive part above
+// Video Intro Logic
+const videoOverlay = document.getElementById('intro-video-overlay');
+const introVideo = document.getElementById('intro-video');
+const gameContainer = document.getElementById('game-container');
 
-// Events (updated slightly)
+let videoPlayed = false;
+
+videoOverlay.addEventListener('click', () => {
+    if (!videoPlayed) {
+        introVideo.play().catch(() => {});
+        videoPlayed = true;
+    } else {
+        videoOverlay.classList.add('hidden');
+        gameContainer.classList.add('visible');
+        startBackgroundMusic();
+    }
+});
+
+// Background Music Playlist (shuffle + random start)
+function startBackgroundMusic() {
+    const playlistId = 'PLkmghnJPShXQl0i53iD4BIX2IR3MOsBRw';
+    // Random start index (YouTube API needs JS player for true shuffle, but we fake it with random index)
+    const randomIndex = Math.floor(Math.random() * 50) + 1; // assume playlist has >50 tracks
+
+    const src = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&mute=1&loop=1&playlist=${playlistId}&index=${randomIndex}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+
+    document.getElementById('bg-music').src = src;
+}
+
+// Game Logic (tones removed)
+let currentLevel = 1;
+let sequence = [];
+let playerInputIndex = 0;
+let isPlayerTurn = false;
+let isDisplaying = false;
+let inputStartTime = 0;
+let timeoutId;
+
+const levelDisplay = document.getElementById('level-display');
+const messageBox = document.getElementById('message-box');
+const startButton = document.getElementById('start-button');
+const buttons = [
+    document.getElementById('btn-0'),
+    document.getElementById('btn-1'),
+    document.getElementById('btn-2'),
+    document.getElementById('btn-3')
+];
+
+const BASE_DELAY = 520;
+const BASE_SEQUENCE = 2;
+const BASE_INPUT_TIME = 1100;
+
+const DIFFICULTY = {
+    1:  { length: BASE_SEQUENCE,     input_time_per_step: BASE_INPUT_TIME },
+    2:  { length: BASE_SEQUENCE + 1, input_time_per_step: BASE_INPUT_TIME - 90 },
+    3:  { length: BASE_SEQUENCE + 2, input_time_per_step: BASE_INPUT_TIME - 180 },
+    4:  { length: BASE_SEQUENCE + 3, input_time_per_step: BASE_INPUT_TIME - 270 },
+    5:  { length: BASE_SEQUENCE + 4, input_time_per_step: BASE_INPUT_TIME - 360 },
+    6:  { length: BASE_SEQUENCE + 5, input_time_per_step: BASE_INPUT_TIME - 450 },
+    7:  { length: BASE_SEQUENCE + 6, input_time_per_step: BASE_INPUT_TIME - 540 },
+    8:  { length: BASE_SEQUENCE + 7, input_time_per_step: BASE_INPUT_TIME - 630 },
+    9:  { length: BASE_SEQUENCE + 8, input_time_per_step: 320 },
+    10: { length: 25,                input_time_per_step: 280 }
+};
+
+function highlightButton(index) {
+    const btn = buttons[index];
+    btn.classList.add('highlight');
+    if (navigator.vibrate) navigator.vibrate(60);
+    setTimeout(() => btn.classList.remove('highlight'), BASE_DELAY * 0.7);
+}
+
+function generateSequence(level) {
+    const len = DIFFICULTY[level].length;
+    sequence = Array.from({length: len}, () => Math.floor(Math.random() * 4));
+}
+
+function displaySequence() {
+    isDisplaying = true;
+    messageBox.textContent = `NEURAL SYNC → LEVEL ${currentLevel}`;
+    messageBox.classList.add('neon-text');
+
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i < sequence.length) {
+            highlightButton(sequence[i]);
+            i++;
+        } else {
+            clearInterval(interval);
+            isDisplaying = false;
+            playerTurn();
+        }
+    }, BASE_DELAY);
+}
+
+function playerTurn() {
+    isPlayerTurn = true;
+    playerInputIndex = 0;
+    inputStartTime = Date.now();
+
+    const timeLimit = sequence.length * DIFFICULTY[currentLevel].input_time_per_step;
+
+    messageBox.textContent = currentLevel < 10
+        ? `REPLICATE ${sequence.length} NEON PULSES`
+        : "ZENITH OVERLOAD → BREAK THE MATRIX";
+
+    timeoutId = setTimeout(() => {
+        if (isPlayerTurn) gameOver("LINK TIMEOUT");
+    }, timeLimit);
+}
+
+function handleInput(index) {
+    if (!isPlayerTurn || isDisplaying) return;
+
+    if (currentLevel === 10 && playerInputIndex === 0) {
+        const elapsed = Date.now() - inputStartTime;
+        const target = 100;
+        const tolerance = 6;
+
+        if (index !== sequence[0] && elapsed >= target - tolerance && elapsed <= target + tolerance) {
+            clearTimeout(timeoutId);
+            isPlayerTurn = false;
+            celebrateWin("ZENITH BREAK → 100ms PHANTOM TIMING ACHIEVED");
+            return;
+        }
+    }
+
+    highlightButton(index);
+
+    if (index === sequence[playerInputIndex]) {
+        playerInputIndex++;
+        if (playerInputIndex === sequence.length) {
+            isPlayerTurn = false;
+            clearTimeout(timeoutId);
+            messageBox.textContent = `CORE ${currentLevel} STABILIZED → NEXT LAYER`;
+            setTimeout(nextLevel, 1400);
+        }
+    } else {
+        gameOver(`CRC ERROR at pulse ${playerInputIndex + 1}`);
+    }
+}
+
+function startGame() {
+    startButton.disabled = true;
+    startButton.textContent = "LIVE";
+    currentLevel = 1;
+    levelDisplay.textContent = `LEVEL ${currentLevel} / 10`;
+    messageBox.textContent = "NEURAL INTERFACE ONLINE...";
+    setTimeout(playLevel, 1200);
+}
+
+function playLevel() {
+    playerInputIndex = 0;
+    clearTimeout(timeoutId);
+    levelDisplay.textContent = `LEVEL ${currentLevel} / 10`;
+    generateSequence(currentLevel);
+    displaySequence();
+}
+
+function nextLevel() {
+    currentLevel++;
+    if (currentLevel > 10) {
+        finalWin();
+    } else {
+        playLevel();
+    }
+}
+
+function gameOver(reason) {
+    clearTimeout(timeoutId);
+    isPlayerTurn = false;
+    isDisplaying = false;
+    messageBox.innerHTML = `<span class="text-[#ff0066] glitch font-extrabold">CORE BREACH</span><br>${reason}<br>DEPTH ${currentLevel}`;
+    startButton.disabled = false;
+    startButton.textContent = "REBOOT";
+    currentLevel = 1;
+}
+
+function celebrateWin(message) {
+    levelDisplay.textContent = "MATRIX SHATTERED";
+    messageBox.innerHTML = `<span class="text-[#ffe700] glitch font-extrabold">NEON ASCENSION</span><br>${message}`;
+    startButton.disabled = true;
+    startButton.textContent = "LEGEND";
+
+    buttons.forEach((btn, i) => {
+        setTimeout(() => {
+            btn.classList.add('highlight');
+            btn.style.transform = 'rotate(360deg) scale(1.15)';
+            setTimeout(() => {
+                btn.classList.remove('highlight');
+                btn.style.transform = '';
+            }, 680);
+        }, i * 140);
+    });
+}
+
+function finalWin() {
+    celebrateWin("YOU TRANSCENDED ALL LAYERS → TRUE ZENITH");
+}
+
+// Events
 window.onload = () => {
-    const buttons = [
-        document.getElementById('btn-0'),
-        document.getElementById('btn-1'),
-        document.getElementById('btn-2'),
-        document.getElementById('btn-3')
-    ];
-
     buttons.forEach((btn, idx) => {
         btn.addEventListener('click', () => handleInput(idx));
         btn.addEventListener('touchend', e => {
@@ -244,17 +476,10 @@ window.onload = () => {
         });
     });
 
-    // Optional: force layout recalc on orientation change / resize
     window.addEventListener('resize', () => {
         document.documentElement.style.setProperty('--btn-size', 'clamp(120px, 38vw, 180px)');
     });
 };
-
-// Your existing game logic goes here ↓
-// const audioCtx = ...
-// const TONES = ...
-// function playTone ...
-// ... rest of your script ...
 </script>
 </body>
 </html>
